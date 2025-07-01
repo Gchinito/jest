@@ -1,257 +1,286 @@
----
-id: getting-started
-title: Getting Started
----
-
-Install Jest using your favorite package manager:
-
-```bash npm2yarn
-npm install --save-dev jest
-```
-
-Let's get started by writing a test for a hypothetical function that adds two numbers. First, create a `sum.js` file:
-
-```javascript
-function sum(a, b) {
-  return a + b;
-}
-module.exports = sum;
-```
-
-Then, create a file named `sum.test.js`. This will contain our actual test:
-
-```javascript
-const sum = require('./sum');
-
-test('adds 1 + 2 to equal 3', () => {
-  expect(sum(1, 2)).toBe(3);
-});
-```
-
-Add the following section to your `package.json`:
-
-```json
-{
-  "scripts": {
-    "test": "jest"
-  }
-}
-```
-
-Finally, run `yarn test` or `npm test` and Jest will print this message:
-
-```bash
-PASS  ./sum.test.js
-✓ adds 1 + 2 to equal 3 (5ms)
-```
-
-**You just successfully wrote your first test using Jest!**
-
-This test used `expect` and `toBe` to test that two values were exactly identical. To learn about the other things that Jest can test, see [Using Matchers](UsingMatchers.md).
-
-## Running from command line
-
-You can run Jest directly from the CLI (if it's globally available in your `PATH`, e.g. by `yarn global add jest` or `npm install jest --global`) with a variety of useful options.
-
-Here's how to run Jest on files matching `my-test`, using `config.json` as a configuration file and display a native OS notification after the run:
-
-```bash
-jest my-test --notify --config=config.json
-```
-
-If you'd like to learn more about running `jest` through the command line, take a look at the [Jest CLI Options](CLI.md) page.
-
-## Additional Configuration
-
-### Generate a basic configuration file
-
-Based on your project, Jest will ask you a few questions and will create a basic configuration file with a short description for each option:
-
-```bash npm2yarn
-npm init jest@latest
-```
-
-### Using Babel
-
-To use [Babel](https://babeljs.io/), install required dependencies:
-
-```bash npm2yarn
-npm install --save-dev babel-jest @babel/core @babel/preset-env
-```
-
-Configure Babel to target your current version of Node by creating a `babel.config.js` file in the root of your project:
-
-```javascript title="babel.config.js"
-module.exports = {
-  presets: [['@babel/preset-env', {targets: {node: 'current'}}]],
-};
-```
-
-The ideal configuration for Babel will depend on your project. See [Babel's docs](https://babeljs.io/docs/en/) for more details.
-
-<details>
-  <summary markdown="span"><strong>Making your Babel config jest-aware</strong></summary>
-
-Jest will set `process.env.NODE_ENV` to `'test'` if it's not set to something else. You can use that in your configuration to conditionally setup only the compilation needed for Jest, e.g.
-
-```javascript title="babel.config.js"
-module.exports = api => {
-  const isTest = api.env('test');
-  // You can use isTest to determine what presets and plugins to use.
-
-  return {
-    // ...
-  };
-};
-```
-
-:::note
-
-`babel-jest` is automatically installed when installing Jest and will automatically transform files if a babel configuration exists in your project. To avoid this behavior, you can explicitly reset the `transform` configuration option:
-
-```javascript title="jest.config.js"
-module.exports = {
-  transform: {},
-};
-```
-
-:::
-
-</details>
-
-## Using with bundlers
-
-Most of the time you do not need to do anything special to work with different bundlers - the exception is if you have some plugin or configuration which generates files or have custom file resolution rules.
-
-### Using webpack
-
-Jest can be used in projects that use [webpack](https://webpack.js.org/) to manage assets, styles, and compilation. webpack does offer some unique challenges over other tools. Refer to the [webpack guide](Webpack.md) to get started.
-
-### Using Vite
-
-Jest is not supported by Vite due to incompatibilities with the Vite [plugin system](https://github.com/vitejs/vite/issues/1955#issuecomment-776009094).
-
-There are examples for Jest integration with Vite in the [vite-jest](https://github.com/sodatea/vite-jest) library. However, this library is not compatible with versions of Vite later than 2.4.2.
-
-One alternative is [Vitest](https://vitest.dev/) which has an API compatible Jest.
-
-### Using Parcel
-
-Jest can be used in projects that use [parcel-bundler](https://parceljs.org/) to manage assets, styles, and compilation similar to webpack. Parcel requires zero configuration. Refer to the official [docs](https://parceljs.org/docs/) to get started.
-
-### Using TypeScript
-
-#### Via `babel`
-
-Jest supports TypeScript, via Babel. First, make sure you followed the instructions on [using Babel](#using-babel) above. Next, install the `@babel/preset-typescript`:
-
-```bash npm2yarn
-npm install --save-dev @babel/preset-typescript
-```
-
-Then add `@babel/preset-typescript` to the list of presets in your `babel.config.js`.
-
-```javascript title="babel.config.js"
-module.exports = {
-  presets: [
-    ['@babel/preset-env', {targets: {node: 'current'}}],
-    // highlight-next-line
-    '@babel/preset-typescript',
-  ],
-};
-```
-
-However, there are some [caveats](https://babeljs.io/docs/en/babel-plugin-transform-typescript#caveats) to using TypeScript with Babel. Because TypeScript support in Babel is purely transpilation, Jest will not type-check your tests as they are run. If you want that, you can use [ts-jest](https://github.com/kulshekhar/ts-jest) instead, or just run the TypeScript compiler [tsc](https://www.typescriptlang.org/docs/handbook/compiler-options.html) separately (or as part of your build process).
-
-#### Via `ts-jest`
-
-[ts-jest](https://github.com/kulshekhar/ts-jest) is a TypeScript preprocessor with source map support for Jest that lets you use Jest to test projects written in TypeScript.
-
-```bash npm2yarn
-npm install --save-dev ts-jest
-```
-
-In order for Jest to transpile TypeScript with `ts-jest`, you may also need to create a [configuration](https://kulshekhar.github.io/ts-jest/docs/getting-started/installation#jest-config-file) file.
-
-#### Type definitions
-
-There are two ways to have [Jest global APIs](GlobalAPI.md) typed for test files written in TypeScript.
-
-You can use type definitions which ships with Jest and will update each time you update Jest. Install the `@jest/globals` package:
-
-```bash npm2yarn
-npm install --save-dev @jest/globals
-```
-
-And import the APIs from it:
-
-```ts title="sum.test.ts"
-import {describe, expect, test} from '@jest/globals';
-import {sum} from './sum';
-
-describe('sum module', () => {
-  test('adds 1 + 2 to equal 3', () => {
-    expect(sum(1, 2)).toBe(3);
-  });
-});
-```
-
-:::tip
-
-See the additional usage documentation of [`describe.each`/`test.each`](GlobalAPI.md#typescript-usage) and [`mock functions`](MockFunctionAPI.md#typescript-usage).
-
-:::
-
-Or you may choose to install the [`@types/jest`](https://npmjs.com/package/@types/jest) package. It provides types for Jest globals without a need to import them.
-
-```bash npm2yarn
-npm install --save-dev @types/jest
-```
-
-:::info
-
-`@types/jest` is a third party library maintained at [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/jest), hence the latest Jest features or versions may not be covered yet. Try to match versions of Jest and `@types/jest` as closely as possible. For example, if you are using Jest `27.4.0` then installing `27.4.x` of `@types/jest` is ideal.
-
-:::
-
-### Using ESLint
-
-Jest can be used with ESLint without any further configuration as long as you import the [Jest global helpers](GlobalAPI.md) (`describe`, `it`, etc.) from `@jest/globals` before using them in your test file. This is necessary to avoid `no-undef` errors from ESLint, which doesn't know about the Jest globals.
-
-If you'd like to avoid these imports, you can configure your [ESLint environment](https://eslint.org/docs/latest/use/configure/language-options#specifying-environments) to support these globals by adding the `jest` environment:
-
-```js
-import {defineConfig} from 'eslint/config';
-import globals from 'globals';
-
-export default defineConfig([
-  {
-    files: ['**/*.js'],
-    languageOptions: {
-      globals: {
-        ...globals.jest,
-      },
-    },
-    rules: {
-      'no-unused-vars': 'warn',
-      'no-undef': 'warn',
-    },
-  },
-]);
-```
-
-Or use [`eslint-plugin-jest`](https://github.com/jest-community/eslint-plugin-jest), which has a similar effect:
-
-```json
-{
-  "overrides": [
-    {
-      "files": ["tests/**/*"],
-      "plugins": ["jest"],
-      "env": {
-        "jest/globals": true
-      }
+import React, { useState, useRef, useEffect } from 'react';
+import { MessageCircle, X, Send, Bot, User, Trash2, Sparkles, Heart, Star, Crown, Zap, Coffee, Award, MapPin, Phone, Clock, ChefHat } from 'lucide-react';
+import { useChatbot } from '../context/ChatbotContext';
+
+const Chatbot: React.FC = () => {
+  const { mensajes, enviarMensaje, limpiarChat, chatAbierto, setChatAbierto, preguntasFrecuentes } = useChatbot();
+  const [inputValue, setInputValue] = useState('');
+  const [escribiendo, setEscribiendo] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto scroll al final
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [mensajes]);
+
+  // Manejar envío de mensaje
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (inputValue.trim()) {
+      setEscribiendo(true);
+      enviarMensaje(inputValue.trim());
+      setInputValue('');
+      setTimeout(() => setEscribiendo(false), 2000);
     }
-  ]
-}
-```
+  };
+
+  // Enviar pregunta frecuente
+  const enviarPreguntaFrecuente = (pregunta: string) => {
+    setEscribiendo(true);
+    enviarMensaje(pregunta);
+    setTimeout(() => setEscribiendo(false), 2000);
+  };
+
+  // Formatear timestamp
+  const formatearHora = (timestamp: Date) => {
+    return timestamp.toLocaleTimeString('es-PE', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  return (
+    <>
+      {/* Botón flotante ultra premium */}
+      <button
+        onClick={() => setChatAbierto(!chatAbierto)}
+        className={`fixed bottom-8 right-8 z-50 w-20 h-20 rounded-full shadow-2xl transition-all duration-700 transform hover:scale-110 ${
+          chatAbierto 
+            ? 'bg-gradient-to-br from-red-500 via-red-600 to-red-700 hover:from-red-600 hover:to-red-800 rotate-180' 
+            : 'bg-gradient-to-br from-[#8B4513] via-[#A0522D] to-[#CD853F] hover:from-[#654321] hover:to-[#8B4513] animate-pulse'
+        } group overflow-hidden`}
+        style={{
+          boxShadow: chatAbierto 
+            ? '0 25px 50px rgba(239, 68, 68, 0.4), 0 0 30px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)' 
+            : '0 25px 50px rgba(139, 69, 19, 0.4), 0 0 30px rgba(139, 69, 19, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+        }}
+      >
+        {/* Efectos de fondo animados */}
+        <div className="absolute inset-0 bg-gradient-to-r from-white/20 via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
+        <div className="absolute top-2 right-2 w-3 h-3 bg-white/40 rounded-full animate-ping"></div>
+        <div className="absolute bottom-2 left-2 w-2 h-2 bg-white/50 rounded-full animate-bounce"></div>
+        <div className="absolute top-1/2 left-1/2 w-8 h-8 border border-white/20 rounded-full transform -translate-x-1/2 -translate-y-1/2 animate-spin-slow"></div>
+        
+        <div className="relative w-full h-full flex items-center justify-center">
+          {chatAbierto ? (
+            <X size={32} className="text-white transition-transform duration-500 drop-shadow-lg" />
+          ) : (
+            <>
+              <MessageCircle size={32} className="text-white animate-pulse drop-shadow-lg" />
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full animate-bounce flex items-center justify-center shadow-lg">
+                <Sparkles size={12} className="text-white" />
+              </div>
+            </>
+          )}
+        </div>
+      </button>
+
+      {/* Ventana del chat ultra premium */}
+      {chatAbierto && (
+        <div className="fixed bottom-32 right-8 z-40 w-96 h-[700px] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 flex flex-col animate-in slide-in-from-bottom-5 duration-700 overflow-hidden"
+             style={{ 
+               boxShadow: '0 25px 50px rgba(0, 0, 0, 0.25), 0 0 50px rgba(139, 69, 19, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.2)',
+               background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 248, 220, 0.95) 100%)'
+             }}>
+          
+          {/* Header ultra premium con gradiente y efectos */}
+          <div className="bg-gradient-to-br from-[#8B4513] via-[#A0522D] to-[#CD853F] text-white p-6 rounded-t-3xl relative overflow-hidden">
+            {/* Efectos decorativos del header */}
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute top-3 right-6 w-12 h-12 border-2 border-white/30 rounded-full animate-spin-slow"></div>
+              <div className="absolute bottom-3 left-6 w-8 h-8 border border-white/30 rounded-full animate-pulse"></div>
+              <div className="absolute top-1/2 left-1/2 w-16 h-16 bg-white/10 rounded-full transform -translate-x-1/2 -translate-y-1/2 animate-pulse"></div>
+              <div className="absolute top-2 left-2 w-4 h-4 bg-yellow-400/30 rounded-full animate-bounce"></div>
+              <div className="absolute bottom-2 right-2 w-6 h-6 bg-white/20 rounded-full animate-float"></div>
+            </div>
+            
+            <div className="flex items-center justify-between relative z-10">
+              <div className="flex items-center">
+                <div className="relative">
+                  <div className="w-16 h-16 bg-white/25 rounded-3xl flex items-center justify-center mr-4 animate-float shadow-xl backdrop-blur-sm border border-white/30">
+                    <ChefHat size={32} className="text-white" />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full border-2 border-white animate-pulse flex items-center justify-center shadow-lg">
+                    <div className="w-2 h-2 bg-white rounded-full animate-ping"></div>
+                  </div>
+                  <div className="absolute -top-1 -left-1 w-4 h-4 bg-yellow-400 rounded-full animate-bounce shadow-lg">
+                    <Crown size={12} className="text-white p-0.5" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-bold text-2xl text-white mb-1 flex items-center">
+                    Cuy-Bot 
+                    <span className="ml-2 text-2xl animate-bounce">🐹</span>
+                  </h3>
+                  <p className="text-sm text-white/90 flex items-center font-semibold">
+                    <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                    En línea • Restaurante Nieves
+                  </p>
+                  <p className="text-xs text-white/80 font-medium mt-1">
+                    🇵🇪 Asistente gastronómico especializado
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={limpiarChat}
+                  className="p-3 hover:bg-white/20 rounded-2xl transition-all duration-300 hover:scale-110 group backdrop-blur-sm"
+                  title="Limpiar chat"
+                >
+                  <Trash2 size={18} className="group-hover:text-red-200 transition-colors" />
+                </button>
+                <button
+                  onClick={() => setChatAbierto(false)}
+                  className="p-3 hover:bg-white/20 rounded-2xl transition-all duration-300 hover:scale-110 backdrop-blur-sm"
+                  title="Cerrar chat"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Mensajes con diseño ultra premium */}
+          <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-gray-50 to-white">
+            {mensajes.map((mensaje) => (
+              <div
+                key={mensaje.id}
+                className={`flex ${mensaje.esBot ? 'justify-start' : 'justify-end'} animate-in slide-in-from-bottom-2 duration-500`}
+              >
+                <div className={`max-w-[85%] ${mensaje.esBot ? 'order-2' : 'order-1'}`}>
+                  <div
+                    className={`p-5 rounded-3xl shadow-lg transition-all duration-300 hover:shadow-xl ${
+                      mensaje.esBot
+                        ? 'bg-white text-gray-900 border border-gray-200 rounded-bl-lg'
+                        : 'bg-gradient-to-br from-[#8B4513] to-[#CD853F] text-white rounded-br-lg'
+                    }`}
+                    style={{
+                      boxShadow: mensaje.esBot 
+                        ? '0 10px 25px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5)'
+                        : '0 10px 25px rgba(139, 69, 19, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2)'
+                    }}
+                  >
+                    <p className="text-sm leading-relaxed whitespace-pre-line font-semibold">{mensaje.texto}</p>
+                    <p className={`text-xs mt-3 font-bold ${mensaje.esBot ? 'text-gray-500' : 'text-white/80'}`}>
+                      {formatearHora(mensaje.timestamp)}
+                    </p>
+                  </div>
+                </div>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${mensaje.esBot ? 'order-1 mr-4' : 'order-2 ml-4'} flex-shrink-0`}>
+                  {mensaje.esBot ? (
+                    <div className="w-12 h-12 bg-gradient-to-br from-[#8B4513] to-[#CD853F] rounded-2xl flex items-center justify-center shadow-xl relative overflow-hidden border border-white/20">
+                      <Bot size={20} className="text-white relative z-10" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 hover:opacity-100 transition-opacity"></div>
+                    </div>
+                  ) : (
+                    <div className="w-12 h-12 bg-gradient-to-br from-gray-600 to-gray-700 rounded-2xl flex items-center justify-center shadow-xl border border-white/20">
+                      <User size={20} className="text-white" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            
+            {escribiendo && (
+              <div className="flex justify-start animate-in slide-in-from-bottom-2 duration-500">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#8B4513] to-[#CD853F] rounded-2xl flex items-center justify-center mr-4 shadow-xl animate-pulse border border-white/20">
+                  <Bot size={20} className="text-white" />
+                </div>
+                <div className="bg-white p-5 rounded-3xl rounded-bl-lg shadow-lg border border-gray-200"
+                     style={{ boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.5)' }}>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-3 h-3 bg-[#8B4513] rounded-full animate-bounce"></div>
+                      <div className="w-3 h-3 bg-[#8B4513] rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-3 h-3 bg-[#8B4513] rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
+                    <span className="text-xs text-gray-700 ml-3 font-bold">Cuy-Bot está escribiendo...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Preguntas frecuentes ultra premium */}
+          {mensajes.length <= 1 && (
+            <div className="p-6 border-t bg-gradient-to-r from-gray-50 to-white">
+              <div className="flex items-center mb-4">
+                <div className="w-8 h-8 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full flex items-center justify-center mr-3 shadow-lg animate-pulse">
+                  <Star size={16} className="text-white" />
+                </div>
+                <p className="text-sm text-gray-900 font-black">Preguntas populares:</p>
+              </div>
+              <div className="space-y-3">
+                {preguntasFrecuentes.slice(0, 3).map((faq) => (
+                  <button
+                    key={faq.id}
+                    onClick={() => enviarPreguntaFrecuente(faq.pregunta)}
+                    className="w-full text-left text-sm p-4 bg-white hover:bg-gradient-to-r hover:from-[#FFF8DC] hover:to-[#F5DEB3] rounded-2xl transition-all duration-300 border border-gray-200 hover:border-[#8B4513]/30 hover:shadow-lg transform hover:scale-[1.02] group"
+                    style={{ boxShadow: '0 4px 6px rgba(0, 0, 0, 0.05)' }}
+                  >
+                    <div className="flex items-center">
+                      <div className="w-3 h-3 bg-gradient-to-r from-[#8B4513] to-[#CD853F] rounded-full mr-3 group-hover:animate-pulse"></div>
+                      <span className="text-gray-900 font-bold group-hover:text-[#8B4513] transition-colors">{faq.pregunta}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Input ultra premium con diseño sofisticado */}
+          <form onSubmit={handleSubmit} className="p-6 border-t bg-white rounded-b-3xl">
+            <div className="flex space-x-4">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                placeholder="Escribe tu mensaje..."
+                className="flex-1 px-5 py-4 border-2 border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#8B4513]/30 focus:border-[#8B4513] text-sm bg-gray-50 focus:bg-white transition-all duration-200 text-gray-900 font-semibold placeholder-gray-500"
+                style={{ boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.05)' }}
+                disabled={escribiendo}
+              />
+              <button
+                type="submit"
+                disabled={!inputValue.trim() || escribiendo}
+                className="px-6 py-4 bg-gradient-to-r from-[#8B4513] to-[#CD853F] text-white rounded-2xl hover:from-[#654321] hover:to-[#8B4513] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[#8B4513]/50 shadow-xl hover:shadow-2xl group"
+                style={{ boxShadow: '0 10px 25px rgba(139, 69, 19, 0.3)' }}
+              >
+                <Send size={20} className="group-hover:translate-x-1 transition-transform duration-200" />
+              </button>
+            </div>
+            
+            {/* Footer del chat con información del restaurante */}
+            <div className="flex items-center justify-center mt-4 space-x-6 text-xs text-gray-600">
+              <div className="flex items-center">
+                <MapPin size={12} className="mr-1 text-[#8B4513]" />
+                <span className="font-bold">Lima, Perú</span>
+              </div>
+              <div className="flex items-center">
+                <Phone size={12} className="mr-1 text-[#8B4513]" />
+                <span className="font-bold">992 579 584</span>
+              </div>
+              <div className="flex items-center">
+                <Clock size={12} className="mr-1 text-[#8B4513]" />
+                <span className="font-bold">11AM - 10PM</span>
+              </div>
+            </div>
+            
+            {/* Indicador de estado con corazón */}
+            <div className="flex items-center justify-center mt-3">
+              <div className="flex items-center text-xs text-gray-700 bg-gradient-to-r from-red-50 to-pink-50 px-4 py-2 rounded-full border border-red-200 shadow-sm">
+                <Heart size={14} className="text-red-400 mr-2 animate-pulse" />
+                <span className="font-bold">Hecho con amor peruano</span>
+                <Crown size={14} className="text-yellow-500 ml-2 animate-bounce" />
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Chatbot;
